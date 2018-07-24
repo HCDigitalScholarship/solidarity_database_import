@@ -1,0 +1,221 @@
+{% extends "admin/import_export/base.html" %}
+{% load i18n %}
+{% load admin_urls %}
+{% load import_export_tags %}
+
+
+{% block breadcrumbs_last %}
+{% trans "Import" %}
+{% endblock %}
+
+
+{% block content %}
+{% if confirm_form %}
+  <form action="{% url opts|admin_urlname:"process_import" %}" method="POST">
+    {% csrf_token %}
+    {{ confirm_form.as_p }}
+    <p>
+      {% trans "Below is a preview of data to be imported. If you are satisfied with the results, click 'Confirm import'" %}
+    </p>
+    <div class="submit-row">
+      <input type="submit" class="default" name="confirm" value="{% trans "Confirm import" %}">
+    </div>
+  </form>
+
+{% else %}
+  <form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <p>
+      {% trans "This importer will import the following fields: " %}
+      <code>{{ fields|join:", " }}</code>
+    </p>
+
+    <fieldset class="module aligned">
+      {% for field in form %}
+        <div class="form-row">
+          {{ field.errors }}
+
+          {{ field.label_tag }}
+
+          {{ field }}
+
+          {% if field.field.help_text %}
+          <p class="help">{{ field.field.help_text|safe }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </fieldset>
+
+    <div class="submit-row">
+      <input type="submit" class="default" value="{% trans "Submit" %}">
+    </div>
+  </form>
+{% endif %}
+
+{% if result %}
+
+  {% if result.has_errors %}
+    <h2>{% trans "Errors" %}</h2>
+    <ul>
+      {% for error in result.base_errors  %}
+      <li>
+        {{ error.error }}
+        <div class="traceback">{{ error.traceback|linebreaks }}</div>
+      </li>
+      {% endfor %}
+      {% for line, errors in result.row_errors %}
+        {% for error in errors %}
+          <li>
+            {% trans "Line number" %}: {{ line }} - {{ error.error }}
+            <div><code>{{ error.row.values|join:", " }}</code></div>
+            <div class="traceback">{{ error.traceback|linebreaks }}</div>
+          </li>
+        {% endfor %}
+      {% endfor %}
+    </ul>
+  {% else %}
+
+  <!--customized only for Credit Unions-->
+    {% if result.deleted_rows %}
+      <div class="tab">
+        <button class="tablinks" onclick="openTab(event, 'Preview')">Preview</button>
+        <button class="tablinks" onclick="openTab(event, 'Delete')">To Delete</button>
+      </div>
+
+      <div id="Preview" class="tabcontent">
+      <h2>
+        {% trans "Preview (" %} {{ result.total_rows }} {% trans "total )" %}
+      </h2>
+      <table class="myTable">
+        <thead>
+          <tr>
+            <th></th>
+            {% for field in result.diff_headers %}
+              <th>{{ field }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+        {% for row in result.rows %}
+        <tr>
+          <td>
+            {% if row.import_type == 'new' %}
+              {% trans "New" %}
+            {% elif row.import_type == 'skip' %}
+              {% trans "Skipped" %}
+            {% elif row.import_type == 'delete' %}
+              {% trans "Delete" %}
+            {% elif row.import_type == 'update' %}
+              {% trans "Update" %}
+            {% endif %}
+          </td>
+          {% for field in row.diff %}
+          <td>
+            {{ field }}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+
+      <div id="Delete" class="tabcontent">
+      <h2>
+        {% trans "These locations will be deleted (" %} {{ result.deleted_rows|length }} {% trans "total )" %}
+      </h2>
+      <table class="myTable">
+        <thead>
+          <tr>
+            <th></th>
+            {% for field in result.diff_headers %}
+              <th>{{ field }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+        {% for object in result.deleted_rows %}
+        <tr>
+          <td>{% trans "Delete" %}</td>
+          <td>{{object.oid.oid}}</td>
+          <td>{{object.address}}</td>
+          <td>{{object.address2}}</td>
+          <td>{{object.city}}</td>
+          <td>{{object.state}}</td>
+          <td>{{object.zipcode}}</td>
+          <td>{{object.county}}</td>
+          <td>{{object.country}}</td>
+          <td>{{object.match_addr}}</td>
+          <td>{{object.side}}</td>
+          <td>{{object.ref_id}}</td>
+          <td>{{object.geographic_location}}</td>
+        </tr>
+        {% endfor %}
+       </tbody>
+      </table>
+      </div>
+
+    <!--back to default-->
+    {% else %}
+    <h2>
+      {% trans "Preview (" %} {{ result.total_rows }} {% trans "total )" %}
+    </h2>
+    <table class="myTable">
+      <thead>
+        <tr>
+          <th></th>
+          {% for field in result.diff_headers %}
+            <th>{{ field }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for row in result.rows %}
+      <tr>
+        <td>
+          {% if row.import_type == 'new' %}
+            {% trans "New" %}
+          {% elif row.import_type == 'skip' %}
+            {% trans "Skipped" %}
+          {% elif row.import_type == 'delete' %}
+            {% trans "Delete" %}
+          {% elif row.import_type == 'update' %}
+            {% trans "Update" %}
+          {% endif %}
+        </td>
+        {% for field in row.diff %}
+        <td>
+          {{ field }}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    {% endif %}
+
+
+  {% endif %}
+
+  {% endif %}
+
+
+<script>
+function openTab(evt, tabName) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+</script>
+
+{% endblock %}

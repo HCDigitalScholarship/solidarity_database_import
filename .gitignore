@@ -1,0 +1,3 @@
+*.pyc
+database/static/*
+db.sqlite3

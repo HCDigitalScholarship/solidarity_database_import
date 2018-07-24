@@ -239,6 +239,7 @@ class IconGroups(models.Model):
     class Meta:
         managed = False
         db_table = 'icon_groups'
+        verbose_name_plural = 'Icon groups'
 
 
 class IdsTest(models.Model):
@@ -317,7 +318,7 @@ class CreditUnions(Locations):
     objects = CreditUnionsManager()
     class Meta:
         proxy = True
-        verbose_name_plural = 'Credit Unions'
+        verbose_name_plural = 'Locations (credit unions)'
 
 
 class NaicsIndustries(models.Model):
@@ -328,6 +329,7 @@ class NaicsIndustries(models.Model):
     class Meta:
         managed = False
         db_table = 'naics_industries'
+        verbose_name_plural = 'Naics industries'
 
 
 class NaicsIndustryAsocOrg(models.Model):
@@ -347,6 +349,7 @@ class NaicsSectors(models.Model):
     class Meta:
         managed = False
         db_table = 'naics_sectors'
+        verbose_name_plural = 'Naics sectors'
 
 
 class OrgAndTypeAssoc(models.Model):

@@ -43,11 +43,35 @@ class ContactsAdmin(ImportExportModelAdmin):
     resource_class = ContactsResource
     list_display = ('cid', 'get_oid', 'name', 'title', 'phone', 'fax', 'email', 'uid')
     search_fields = ['cid', 'oid__oid', 'name', 'title', 'phone', 'fax', 'email', 'uid']
-    def get_oid(self, obj):
+    def get_oid(self, obj): #For foreign key
         return obj.oid.oid
-    get_oid.admin_order_field = 'oid'
-    get_oid.short_description = 'OID'
+    get_oid.admin_order_field = 'oid' #Allows column order sorting
+    get_oid.short_description = 'OID' #Renames column head
 admin.site.register(Contacts, ContactsAdmin)
+
+
+class EssProductServiceAdmin(admin.ModelAdmin):
+    list_display = ('product_service_id', 'get_prefix', 'name')
+    search_fields = ['product_service_id', 'prefix__prefix_id', 'name']
+    list_filter = ['prefix__prefix_id']
+
+    def get_prefix(self, obj):
+        return obj.prefix.prefix_id
+    get_prefix.admin_order_field = 'prefix'
+    get_prefix.short_description = 'PREFIX'
+admin.site.register(EssProductService, EssProductServiceAdmin)
+
+
+class EssProductServiceTopLevelAdmin(admin.ModelAdmin):
+    list_display = ('prefix_id', 'name')
+    search_fields = ['prefix_id', 'name']
+admin.site.register(EssProductServiceTopLevel, EssProductServiceTopLevelAdmin)
+
+
+class IconGroupsAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ['id', 'name']
+admin.site.register(IconGroups, IconGroupsAdmin)
 
 
 class LocationsResource(resources.ModelResource):
@@ -181,9 +205,44 @@ class CreditUnionsAdmin(ImportExportModelAdmin):
 admin.site.register(CreditUnions, CreditUnionsAdmin)
 
 
+class NaicsIndustriesAdmin(admin.ModelAdmin):
+    list_display = ('naics_id', 'get_naics_sector', 'industry_name')
+    search_fields = ['naics_id', 'naics_sector__naics_sector_id', 'industry_name']
+    list_filter = ['naics_sector__naics_sector_id']
+
+    def get_naics_sector(self, obj):
+        return obj.naics_sector.naics_sector_id
+    get_naics_sector.admin_order_field = 'naics_sector'
+    get_naics_sector.short_description = 'NAICS SECTOR'
+admin.site.register(NaicsIndustries, NaicsIndustriesAdmin)
+
+
+class NaicsIndustryAsocOrgAdmin(admin.ModelAdmin):
+    list_display = ('get_naics', 'get_oid')
+    search_fields = ['naics__naics_id', 'oid__oid']
+
+    def get_oid(self, obj):
+        return obj.oid.oid
+    get_oid.admin_order_field = 'oid'
+    get_oid.short_description = 'OID'
+
+    def get_naics(self, obj):
+        return obj.naics.naics_id
+    get_naics.admin_order_field = 'naics'
+    get_naics.short_description = 'NAICS'
+admin.site.register(NaicsIndustryAsocOrg, NaicsIndustryAsocOrgAdmin)
+
+
+class NaicsSectorsAdmin(admin.ModelAdmin):
+    list_display = ('naics_sector_id', 'sector_name')
+    search_fields = ['naics_sector_id', 'sector_name']
+admin.site.register(NaicsSectors, NaicsSectorsAdmin)
+
+
 class OrgAndTypeAssocAdmin(admin.ModelAdmin):
     list_display = ('get_oid', 'get_tid')
     search_fields = ['oid__oid', 'tid__tid']
+    list_filter = ['tid__tid']
 
     def get_oid(self, obj):
         return obj.oid.oid
@@ -195,6 +254,59 @@ class OrgAndTypeAssocAdmin(admin.ModelAdmin):
     get_tid.admin_order_field = 'tid'
     get_tid.short_description = 'TID'
 admin.site.register(OrgAndTypeAssoc, OrgAndTypeAssocAdmin)
+
+
+class OrgToEssProductInputAdmin(admin.ModelAdmin):
+    list_display = ('get_product_service', 'get_oid')
+    search_fields = ['get_product_service__product_service_id', 'oid__oid']
+
+    def get_product_service(self, obj):
+        return obj.product_service.product_service_id
+    get_product_service.admin_order_field = 'product_service'
+    get_product_service.short_description = 'PRODUCT SERVICE'
+
+    def get_oid(self, obj):
+        return obj.oid.oid
+    get_oid.admin_order_field = 'oid'
+    get_oid.short_description = 'OID'
+admin.site.register(OrgToEssProductInput, OrgToEssProductInputAdmin)
+
+
+class OrgToEssProductOutputAdmin(admin.ModelAdmin):
+    list_display = ('get_product_service', 'get_oid')
+    search_fields = ['get_product_service__product_service_id', 'oid__oid']
+
+    def get_product_service(self, obj):
+        return obj.product_service.product_service_id
+    get_product_service.admin_order_field = 'product_service'
+    get_product_service.short_description = 'PRODUCT SERVICE'
+
+    def get_oid(self, obj):
+        return obj.oid.oid
+    get_oid.admin_order_field = 'oid'
+    get_oid.short_description = 'OID'
+admin.site.register(OrgToEssProductOutput, OrgToEssProductOutputAdmin)
+
+
+class PaOrgsChildcareTmpAdmin(admin.ModelAdmin):
+    pass
+#admin.site.register(PaOrgsChildcareTmp, PaOrgsChildcareTmpAdmin)
+
+
+class PaOrgsTmpAdmin(admin.ModelAdmin):
+    pass
+#admin.site.register(PaOrgsTmp, PaOrgsTmpAdmin)
+
+
+class SuggestionsAdmin(admin.ModelAdmin):
+    list_display = ('get_oid', 'original_organization_id', 'created_at', 'updated_at', 'submitter_name', 'submitter_email', 'ally')
+    search_fields = ['organization__oid', 'original_organization_id', 'created_at', 'updated_at', 'submitter_name', 'submitter_email', 'ally']
+
+    def get_oid(self, obj):
+        return obj.organization.oid
+    get_oid.admin_order_field = 'organization'
+    get_oid.short_description = 'ORGANIZATION ID'
+admin.site.register(Suggestions, SuggestionsAdmin)
 
 
 class TypesAdmin(admin.ModelAdmin):

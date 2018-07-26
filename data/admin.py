@@ -183,7 +183,6 @@ class CreditUnionsResource(resources.ModelResource):
         for deleted_row in self.Meta.model.objects.filter(oid__oid__in = credit_union_oid_list).exclude(pk__in=self.imported_rows_pks):
             result.deleted_rows.append(deleted_row)
         result.deleted_rows_count = len(result.deleted_rows)
-        print (result.deleted_rows_count)
         self.Meta.model.objects.filter(oid__oid__in = credit_union_oid_list).exclude(pk__in=self.imported_rows_pks).delete()
         resources.ModelResource.after_import(self, dataset, result, using_transactions, dry_run, **kwargs)
 

@@ -205,6 +205,47 @@ class CreditUnionsAdmin(ImportExportModelAdmin):
 admin.site.register(CreditUnions, CreditUnionsAdmin)
 
 
+class NCUAResource(resources.ModelResource):
+    class Meta:
+        model = NCUA
+        fields = ['oid']
+        import_id_fields = ['oid']
+
+class NCUAAdmin(ImportExportModelAdmin):
+    resource_class = NCUAResource
+    list_display = ('get_oid', 'get_tid')
+
+    def get_oid(self, obj):
+        return obj.oid.oid
+    get_oid.admin_order_field = 'oid'
+    get_oid.short_description = 'OID'
+
+    def get_tid(self, obj):
+        return OrgAndTypeAssoc.objects.filter(oid = obj.oid.oid).values_list('tid', flat = True)[0]
+    get_tid.admin_order_field = 'oid'
+    get_tid.short_description = 'TID'
+admin.site.register(NCUA, NCUAAdmin)
+
+
+class NCUA_editResource(resources.ModelResource):
+    class Meta:
+        model = NCUA_edit
+        fields = ['lid', 'oid', 'address', 'address2', 'city', 'state', 'zipcode', 'county', 'country', 'match_addr', 'side', 'ref_id', 'geographic_location']
+        import_id_fields = ['address']
+
+    def before_import_row(self, row, **kwargs):
+        if row['oid'] == '' or None:
+            try:
+                row['oid'] = Locations.objects.filter(address__iexact = row['address'], state__iexact = row['state']).values_list('oid', flat = True)[0]
+            except IndexError:
+                pass
+
+class NCUA_editAdmin(ImportExportModelAdmin):
+    resource_class = NCUA_editResource
+    list_display = ('lid', 'oid', 'address', 'address2', 'city', 'state', 'zipcode', 'county', 'country', 'match_addr', 'side', 'ref_id', 'geographic_location')
+admin.site.register(NCUA_edit, NCUA_editAdmin)
+
+
 class NaicsIndustriesAdmin(admin.ModelAdmin):
     list_display = ('naics_id', 'get_naics_sector', 'industry_name')
     search_fields = ['naics_id', 'naics_sector__naics_sector_id', 'industry_name']

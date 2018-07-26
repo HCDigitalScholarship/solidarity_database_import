@@ -311,14 +311,45 @@ class Locations(models.Model):
 
 class CreditUnionsManager(models.Manager):
     def get_queryset(self):
-        credit_union_oid_list = list(OrgAndTypeAssoc.objects.filter(tid = 15).values_list('oid', flat = True))
-        return Locations.objects.filter(oid__oid__in = credit_union_oid_list)
+        #credit_union_oid_list = list(OrgAndTypeAssoc.objects.filter(tid = 15).values_list('oid', flat = True))
+        #filter the credit unions only in ncua
+        ncua_oid_list = list(NCUA.objects.all().values_list('oid', flat = True))
+        return Locations.objects.filter(oid__oid__in = ncua_oid_list)
 
 class CreditUnions(Locations):
     objects = CreditUnionsManager()
     class Meta:
         proxy = True
-        verbose_name_plural = 'Locations (credit unions)'
+        verbose_name_plural = 'Locations (NCUA)'
+
+
+class NCUA(models.Model):
+    oid = models.ForeignKey('Organizations', on_delete=models.CASCADE, blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "NCUA"
+
+
+class NCUA_edit(models.Model):
+    lid = models.CharField(max_length=150, blank=True, null=True)
+    oid = models.CharField(max_length=150, blank=True, null=True)
+    primary_loc = models.NullBooleanField()
+    location_name = models.CharField(max_length=150, blank=True, null=True)
+    comments = models.CharField(max_length=150, blank=True, null=True)
+    address = models.CharField(max_length=150, blank=True, null=True)
+    address2 = models.CharField(max_length=150, blank=True, null=True)
+    city = models.CharField(max_length=150, blank=True, null=True)
+    state = models.CharField(max_length=150, blank=True, null=True)
+    zipcode = models.CharField(max_length=150, blank=True, null=True)
+    county = models.CharField(max_length=150, blank=True, null=True)
+    country = models.CharField(max_length=150, blank=True, null=True)
+    match_addr = models.CharField(max_length=150, blank=True, null=True)
+    side = models.CharField(max_length=150, blank=True, null=True)
+    ref_id = models.CharField(max_length=150, blank=True, null=True)
+    geographic_location = models.PointField(geography=True, blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = "NCUA (edit)"
 
 
 class NaicsIndustries(models.Model):

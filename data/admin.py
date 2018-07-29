@@ -176,14 +176,15 @@ class CreditUnionsResource(resources.ModelResource):
         self.imported_rows_pks.append(instance.pk)
 
     def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
-        credit_union_oid_list = list(OrgAndTypeAssoc.objects.filter(tid = 15).values_list('oid', flat = True))
+        #credit_union_oid_list = list(OrgAndTypeAssoc.objects.filter(tid = 15).values_list('oid', flat = True))
+        ncua_oid_list = list(NCUA.objects.all().values_list('oid', flat = True))
         # have proven:
         # Locations.objects.all() == self.Meta.model.objects.all()
-        # credit_union = self.Meta.model.objects.filter(oid__oid__in = credit_union_oid_list)
-        for deleted_row in self.Meta.model.objects.filter(oid__oid__in = credit_union_oid_list).exclude(pk__in=self.imported_rows_pks):
+        # NCUA = self.Meta.model.objects.filter(oid__oid__in = ncua_oid_list)
+        for deleted_row in self.Meta.model.objects.filter(oid__oid__in = ncua_oid_list).exclude(pk__in=self.imported_rows_pks):
             result.deleted_rows.append(deleted_row)
         result.deleted_rows_count = len(result.deleted_rows)
-        self.Meta.model.objects.filter(oid__oid__in = credit_union_oid_list).exclude(pk__in=self.imported_rows_pks).delete()
+        self.Meta.model.objects.filter(oid__oid__in = nuca_oid_list).exclude(pk__in=self.imported_rows_pks).delete()
         resources.ModelResource.after_import(self, dataset, result, using_transactions, dry_run, **kwargs)
 
 class CreditUnionsAdmin(ImportExportModelAdmin):

@@ -23,3 +23,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('data/', views.data, name='data')
 ]
+
+admin.site.site_header = "Solidarity administration"
+admin.site.site_title = "Solidarity Import Database"
+admin.site.index_title = "Welcome to Solidarity Import Database"

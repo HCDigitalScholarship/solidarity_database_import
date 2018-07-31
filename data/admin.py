@@ -7,6 +7,8 @@ from import_export import widgets
 from mapwidgets.widgets import GooglePointFieldWidget
 
 from django.contrib import messages
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
 
 from data.geocode import google
 from django.contrib.gis.geos import Point
@@ -43,6 +45,7 @@ class ContactsAdmin(ImportExportModelAdmin):
     resource_class = ContactsResource
     list_display = ('cid', 'get_oid', 'name', 'title', 'phone', 'fax', 'email', 'uid')
     search_fields = ['cid', 'oid__oid', 'name', 'title', 'phone', 'fax', 'email', 'uid']
+    raw_id_fields = ("oid",)
     def get_oid(self, obj): #For foreign key
         return obj.oid.oid
     get_oid.admin_order_field = 'oid' #Allows column order sorting
@@ -54,6 +57,7 @@ class EssProductServiceAdmin(admin.ModelAdmin):
     list_display = ('product_service_id', 'get_prefix', 'name')
     search_fields = ['product_service_id', 'prefix__prefix_id', 'name']
     list_filter = ['prefix__prefix_id']
+    raw_id_fields = ("prefix",)
 
     def get_prefix(self, obj):
         return obj.prefix.prefix_id
@@ -118,6 +122,7 @@ class LocationsAdmin(ImportExportModelAdmin): #(admin.ModelAdmin ):
     resource_class = LocationsResource
     list_display = ('lid', 'get_oid', 'address', 'address2', 'city', 'state', 'zipcode', 'county', 'country', 'match_addr', 'side', 'ref_id', 'geographic_location')
     search_fields = ['lid','oid__oid', 'address', 'address2', 'city', 'state', 'zipcode', 'county', 'country', 'match_addr', 'side', 'ref_id']
+    raw_id_fields = ("oid",)
     formfield_overrides = {
         models.PointField: {"widget": GooglePointFieldWidget}
     }
@@ -191,6 +196,7 @@ class CreditUnionsAdmin(ImportExportModelAdmin):
     resource_class = CreditUnionsResource
     list_display = ('lid', 'get_oid', 'address', 'address2', 'city', 'state', 'zipcode', 'county', 'country', 'match_addr', 'side', 'ref_id', 'geographic_location')
     search_fields = ['lid','oid__oid', 'address', 'address2', 'city', 'state', 'zipcode', 'county', 'country', 'match_addr', 'side', 'ref_id']
+    raw_id_fields = ("oid",)
     formfield_overrides = {
         models.PointField: {"widget": GooglePointFieldWidget}
     }
@@ -213,17 +219,28 @@ class NCUAResource(resources.ModelResource):
 
 class NCUAAdmin(ImportExportModelAdmin):
     resource_class = NCUAResource
-    list_display = ('get_oid', 'get_tid')
-
-    def get_oid(self, obj):
-        return obj.oid.oid
-    get_oid.admin_order_field = 'oid'
-    get_oid.short_description = 'OID'
+    list_display = ('oid', 'get_tid')
+    actions = ['delete_all']
 
     def get_tid(self, obj):
-        return OrgAndTypeAssoc.objects.filter(oid = obj.oid.oid).values_list('tid', flat = True)[0]
+        try:
+            return OrgAndTypeAssoc.objects.filter(oid = obj.oid).values_list('tid', flat = True)[0]
+        except IndexError:
+            return "No tid"
     get_tid.admin_order_field = 'oid'
     get_tid.short_description = 'TID'
+
+    def delete_all(self, request, queryset):
+        NCUA.objects.all().delete()
+        '''
+        TODO:
+        if 'apply' in request.POST:
+            print ('I am here!')
+            NCUA.objects.all().delete()
+            return HttpResponseRedirect(request.get_full_path())
+        return render(request, 'admin/data/delete_intermediate.html', context={'opts': NCUA._meta})
+        '''
+    delete_all.short_description = 'Delete all NCUA'
 admin.site.register(NCUA, NCUAAdmin)
 
 
@@ -250,6 +267,7 @@ class NaicsIndustriesAdmin(admin.ModelAdmin):
     list_display = ('naics_id', 'get_naics_sector', 'industry_name')
     search_fields = ['naics_id', 'naics_sector__naics_sector_id', 'industry_name']
     list_filter = ['naics_sector__naics_sector_id']
+    raw_id_fields = ("naics_sector",)
 
     def get_naics_sector(self, obj):
         return obj.naics_sector.naics_sector_id
@@ -261,6 +279,7 @@ admin.site.register(NaicsIndustries, NaicsIndustriesAdmin)
 class NaicsIndustryAsocOrgAdmin(admin.ModelAdmin):
     list_display = ('get_naics', 'get_oid')
     search_fields = ['naics__naics_id', 'oid__oid']
+    raw_id_fields = ("naics", "oid")
 
     def get_oid(self, obj):
         return obj.oid.oid
@@ -284,6 +303,7 @@ class OrgAndTypeAssocAdmin(admin.ModelAdmin):
     list_display = ('get_oid', 'get_tid')
     search_fields = ['oid__oid', 'tid__tid']
     list_filter = ['tid__tid']
+    raw_id_fields = ("oid",)
 
     def get_oid(self, obj):
         return obj.oid.oid
@@ -300,6 +320,7 @@ admin.site.register(OrgAndTypeAssoc, OrgAndTypeAssocAdmin)
 class OrgToEssProductInputAdmin(admin.ModelAdmin):
     list_display = ('get_product_service', 'get_oid')
     search_fields = ['get_product_service__product_service_id', 'oid__oid']
+    raw_id_fields = ("product_service", "oid")
 
     def get_product_service(self, obj):
         return obj.product_service.product_service_id
@@ -316,6 +337,7 @@ admin.site.register(OrgToEssProductInput, OrgToEssProductInputAdmin)
 class OrgToEssProductOutputAdmin(admin.ModelAdmin):
     list_display = ('get_product_service', 'get_oid')
     search_fields = ['get_product_service__product_service_id', 'oid__oid']
+    raw_id_fields = ("product_service", "oid")
 
     def get_product_service(self, obj):
         return obj.product_service.product_service_id
@@ -342,6 +364,7 @@ class PaOrgsTmpAdmin(admin.ModelAdmin):
 class SuggestionsAdmin(admin.ModelAdmin):
     list_display = ('get_oid', 'original_organization_id', 'created_at', 'updated_at', 'submitter_name', 'submitter_email', 'ally')
     search_fields = ['organization__oid', 'original_organization_id', 'created_at', 'updated_at', 'submitter_name', 'submitter_email', 'ally']
+    raw_id_fields = ("organization",)
 
     def get_oid(self, obj):
         return obj.organization.oid

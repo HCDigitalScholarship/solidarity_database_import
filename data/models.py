@@ -324,7 +324,7 @@ class CreditUnions(Locations):
 
 
 class NCUA(models.Model):
-    oid = models.ForeignKey('Organizations', on_delete=models.CASCADE, blank=True, null=True)
+    oid = models.CharField(max_length=150, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "NCUA"
@@ -515,6 +515,7 @@ class Suggestions(models.Model):
     class Meta:
         managed = False
         db_table = 'suggestions'
+        verbose_name_plural = 'Suggestions'
 
 
 class SurveyMain(models.Model):

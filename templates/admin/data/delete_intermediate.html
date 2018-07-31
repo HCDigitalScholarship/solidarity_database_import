@@ -1,0 +1,33 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {{ media }}
+    <script type="text/javascript" src="{% static 'admin/js/cancel.js' %}"></script>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} delete-confirmation{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; {% trans 'Delete' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1> Are you sure? </h1>
+{% trans "Are you sure you want to delete all NCUA?" %}
+<form action="" method="post">{% csrf_token %}
+<br><br>
+<div>
+<input type="hidden" name="post" value="yes">
+<input type="submit" name="apply" value="{% trans "Yes, I'm sure" %}"/>
+<a href="/admin/data/ncua" class="button cancel-link">{% trans "No, take me back" %}</a>
+</div>
+</form>
+
+{% endblock %}
